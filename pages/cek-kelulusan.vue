@@ -10,7 +10,9 @@ const form = reactive({
 });
 
 const isLoading = ref(false)
-const resultStatus = ref<null | 'lulus' | 'tidak_lulus' | 'belum_diproses'>(null);
+const notFound = ref(false)
+const notFoundMessage = ref('')
+const resultStatus = ref<null | 'lulus' | 'tidak_lulus' | 'belum_diproses'| 'not_found'>(null);
 const resultData = ref<{
   nomor_pendaftaran: string
   nama_lengkap: string
@@ -24,7 +26,7 @@ async function handleCheck() {
     toast.add({
       title: 'Validasi Gagal',
       description: 'Mohon isi semua field',
-      color: 'error'
+      color: 'red'
     })
     return
   }
@@ -41,17 +43,21 @@ async function handleCheck() {
       resultData.value = response.data
       resultStatus.value = response.data.status_kelulusan as any
     } else {
+      notFoundMessage.value = response.message || 'Nomor pendaftaran atau tanggal lahir tidak sesuai'
+      notFound.value = true
       toast.add({
         title: 'Data Tidak Ditemukan',
-        description: response.message || 'Nomor pendaftaran atau tanggal lahir tidak sesuai',
-        color: 'error'
+        description: notFoundMessage.value,
+        color: 'red'
       })
     }
   } catch (error) {
+    notFoundMessage.value = 'Gagal terhubung ke server. Pastikan koneksi internet Anda stabil.'
+    notFound.value = true
     toast.add({
       title: 'Error',
-      description: 'Gagal terhubung ke server',
-      color: 'error'
+      description: notFoundMessage.value,
+      color: 'red'
     })
   } finally {
     isLoading.value = false
@@ -61,12 +67,15 @@ async function handleCheck() {
 function reset() {
   resultStatus.value = null
   resultData.value = null
+  notFound.value = false
+  notFoundMessage.value = ''
   form.nomor_pendaftaran = ""
   form.tanggal_lahir = ""
 }
 </script>
 
 <template>
+  <UNotifications />
   <div class="bg-background-light dark:bg-background-dark font-display text-[#111816] min-h-screen flex flex-col overflow-x-hidden">
     <!-- Top Navigation -->
     <header class="sticky top-0 z-50 w-full border-b border-border-light bg-white/80 backdrop-blur-md dark:bg-background-dark/80 dark:border-white/10">
@@ -96,6 +105,29 @@ function reset() {
           Masukkan detail Anda di bawah ini untuk memeriksa status penerimaan Anda.
         </p>
       </div>
+
+      <!-- Alert: Data Tidak Ditemukan -->
+      <transition
+        enter-active-class="transition-all duration-300 ease-out"
+        enter-from-class="opacity-0 -translate-y-2"
+        enter-to-class="opacity-100 translate-y-0"
+        leave-active-class="transition-all duration-200 ease-in"
+        leave-from-class="opacity-100 translate-y-0"
+        leave-to-class="opacity-0 -translate-y-2"
+      >
+        <div v-if="notFound && !resultStatus" class="max-w-xl w-full mb-4">
+          <div class="flex items-start gap-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 rounded-xl px-5 py-4">
+            <UIcon name="i-heroicons-exclamation-circle" class="text-red-500 text-xl flex-shrink-0 mt-0.5" />
+            <div class="flex-1">
+              <p class="text-red-700 dark:text-red-400 font-semibold text-sm">Data Tidak Ditemukan</p>
+              <p class="text-red-600 dark:text-red-300 text-sm mt-0.5">{{ notFoundMessage }}</p>
+            </div>
+            <button @click="notFound = false" class="text-red-400 hover:text-red-600 dark:hover:text-red-300 transition-colors flex-shrink-0">
+              <UIcon name="i-heroicons-x-mark" class="text-lg" />
+            </button>
+          </div>
+        </div>
+      </transition>
 
       <!-- Search Card -->
       <div v-if="!resultStatus" class="max-w-xl w-full bg-white dark:bg-[#1a2c26] rounded-xl shadow-lg border border-gray-100 dark:border-gray-800 overflow-hidden mb-12">
