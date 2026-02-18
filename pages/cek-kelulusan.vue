@@ -10,7 +10,7 @@ const form = reactive({
 });
 
 const isLoading = ref(false)
-const resultStatus = ref<null | 'lulus' | 'tidak_lulus' | 'belum_diproses'>(null);
+const resultStatus = ref<null | 'lulus' | 'tidak_lulus' | 'belum_diproses' | 'not_found'>(null);
 const resultData = ref<{
   nomor_pendaftaran: string
   nama_lengkap: string
