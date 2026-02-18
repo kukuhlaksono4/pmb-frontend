@@ -24,7 +24,7 @@ async function handleCheck() {
     toast.add({
       title: 'Validasi Gagal',
       description: 'Mohon isi semua field',
-      color: 'error'
+      color: 'red'
     })
     return
   }
@@ -37,21 +37,21 @@ async function handleCheck() {
       form.tanggal_lahir
     )
 
-    if (response.success && response.data) {
+    if (response.success && response.data && response.data.status_kelulusan) {
       resultData.value = response.data
       resultStatus.value = response.data.status_kelulusan as any
     } else {
       toast.add({
         title: 'Data Tidak Ditemukan',
         description: response.message || 'Nomor pendaftaran atau tanggal lahir tidak sesuai',
-        color: 'error'
+        color: 'red'
       })
     }
   } catch (error) {
     toast.add({
       title: 'Error',
       description: 'Gagal terhubung ke server',
-      color: 'error'
+      color: 'red'
     })
   } finally {
     isLoading.value = false
